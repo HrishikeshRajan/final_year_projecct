@@ -8,7 +8,7 @@ UART.setup("UART1") # this set is activating the pin name UART1 which has tx and
 ser=serial.Serial('/dev/ttyO1',9600)  # now we need to activate connection btw our board and gps module
 
 class GPS: # class
-   def __init__(self): # this function call when you create object
+    def __init__(self): # this function call when you create object
         #This sets up variables for useful commands.
         
         #This set is used to set the rate the GPS reports to our board 
@@ -48,19 +48,61 @@ class GPS: # class
         ser.flushInput()
         print ("Initializing....")
 
+    def read():
+       ser.flushInput() #clearing the buffer
+       ser.flushInput()
+       while ser.inWaiting==0: 
+            pass
+       self.NMEA1=ser.readline()
+
+       while ser.inWaiting==0:
+            pass
+       self.NMEA2=ser.readline()
+       
+       NMEA1_array=self.NMEA1.split(',')  # here we dividing the NMEA string in to array by using split function
+       NMEA2_array=self.NMEA2.split(',')
+       if NMEA1_array[0]=='$GPRMC':
+           self.timeUTC=NMEA1_array[1][:-8]+':'+NMEA1_array[1][-8:-6]+':'+NMEA1_array[1][-6:-4] # here we slicing the list
+        
+           self.latDeg=NMEA1_array[3][:-7] #degree
+           self.latMin  =NMEA1_array[3][-7:]#minute
+           self.latHemis=NMEA1_array[4]     #hemisphere
+           self.lonDegree=NMEA1_array[5][:-7] #long
+           self.lonMin=NMEA1_array[5][-7:] # minute
+           self.loghemi=NMEA1_array[6]
+           self.knots=NMEA1_array[7]
+       if NMEA1_array[0]=='$GPRMC':
+           self.fix=NMEA1_array[6]
+           self.altitude=NMEA1_array[9]
+           self.sats=NMEA1_array[7]
+
+           #second case
+       if NMEA2_array[0]=='$GPRMC':
+           self.timeUTC=NMEA2_array[1][:-8]+':'+NMEA2_array[1][-8:-6]+':'+NMEA2_array[1][-6:-4] # here we slicing the list
+        
+           self.latDeg=NMEA2_array[3][:-7] #degree
+           self.latMin  =NMEA2_array[3][-7:]#minute
+           self.latHemis=NMEA2_array[4]     #hemisphere
+           self.lonDegree=NMEA2_array[5][:-7] #long
+           self.lonMin=NMEA2_array[5][-7:] # minute
+           self.loghemi=NMEA2_array[6]
+           self.knots=NMEA2_array[7]
+       if NMEA2_array[0]=='$GPRMC':
+           self.fix=NMEA2_array[6]
+           self.altitude=NMEA2_array[9]
+           self.sats=NMEA2_array[7]
+
+
 #create a object for class GPS
 myGPS =GPS()
 while (1): #infinte loop for continous reading
-    ser.flushInput() # it clear the input buffer to avoid the data overwrite and serial monitor clean
-    ser.flushInput()
-    while ser.inWaiting()==0:  # if no data then do nothing and this function will be in loop until data comes
-        pass
-
-    NMEA=ser.readline()
-    print (NMEA)
-
-    #if your using GPRMC_GPGGA
-    #then use two variables 
-    #NMEA1=ser.readline()
-    #NMEA2=ser.readline()
-
+    myGPS.read()
+    print(myGPS.NMEA1)
+    print(myGPS.NMEA2)
+    if myGPS.fix!=0:
+        print('universal Time',myGPS.timeUTC) 
+        print('you are tracking ',myGPS.stas,' satellites') 
+        print ('my latitude ',myGPS.latDeg,' degress ',myGPS.latMin,' minutes') 
+        print ('my longitude',myGPS.lonDegree,'Dergrees',myGPS.lonMin,'minutes',myGPS.loghemi)
+        print ('myspeed',myGPS.knots )
+        print ('altitde',myGPS.altitude)
